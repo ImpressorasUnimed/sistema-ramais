@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Sistema de Ramais</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Libs -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+<style>
+:root {
+  --bg:#000;
+  --card:rgba(255,255,255,.08);
+  --border:#333;
+  --accent:#FF851B;
+}
+
+* { box-sizing:border-box; }
+
+body {
+  margin:0;
+  padding:20px;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont;
+  background:var(--bg);
+  color:#eaeaea;
+}
+
+h1 { margin-bottom:20px; }
+
+.container {
+  max-width:1200px;
+  margin:auto;
+}
+
+.card {
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:20px;
+  margin-bottom:20px;
+}
+
+button {
+  background:var(--accent);
+  border:none;
+  border-radius:14px;
+  padding:10px 16px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+button.secondary {
+  background:transparent;
+  color:var(--accent);
+  border:1px solid var(--border);
+}
+
+input, select {
+  width:100%;
+  padding:12px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.1);
+  color:#fff;
+}
+
+.controls {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:10px;
+}
+
+table {
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0 10px;
+}
+
+td, th {
+  padding:12px;
+}
+
+td {
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+}
+
+.actions button {
+  background:none;
+  color:var(--accent);
+}
+
+.pagination {
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin-top:15px;
+}
+
+@media(max-width:700px){
+  table, thead { display:none; }
+  tr {
+    display:block;
+    background:var(--card);
+    border-radius:14px;
+    padding:12px;
+    margin-bottom:10px;
+  }
+  td {
+    display:block;
+    border:none;
+    padding:6px 0;
+  }
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+<h1>📞 Sistema de Ramais</h1>
+
+<div class="card controls">
+  <input id="busca" placeholder="Buscar..." oninput="aplicarFiltros()">
+  <select id="tipoFiltro" onchange="aplicarFiltros()">
+    <option value="">Todos</option>
+    <option>IP</option>
+    <option>3CX</option>
+  </select>
+  <select id="ordenar" onchange="aplicarFiltros()">
+    <option value="">Ordenar</option>
+    <option value="setor">Setor</option>
+    <option value="nome">Nome</option>
+    <option value="ramal">Ramal</option>
+  </select>
+  <button onclick="exportarExcel()">Excel</button>
+  <button onclick="exportarPDF()">PDF</button>
+  <input type="file" accept=".xlsx" onchange="importarExcel(event)">
+</div>
+
+<div class="card">
+<table>
+<thead>
+<tr>
+<th>Setor</th><th>Nome</th><th>Ramal</th><th>Tipo</th><th></th>
+</tr>
+</thead>
+<tbody id="tabela"></tbody>
+</table>
+
+<div class="pagination">
+  <button onclick="pagina-- && render()">◀</button>
+  <span id="pageInfo"></span>
+  <button onclick="pagina++ && render()">▶</button>
+</div>
+</div>
+</div>
+
+<script>
+const PAGE_SIZE = 10;
+let pagina = 1;
+
+const uuid = () =>
+  crypto.randomUUID?.() || Math.random().toString(36).slice(2);
+
+let ramais = JSON.parse(localStorage.getItem("ramais")) || [];
+
+function aplicarFiltros(){
+  pagina = 1;
+  render();
+}
+
+function getFiltrados(){
+  let lista = [...ramais];
+  const b = busca.value.toLowerCase();
+  const t = tipoFiltro.value;
+  const o = ordenar.value;
+
+  if(b)
+    lista = lista.filter(r =>
+      r.setor.toLowerCase().includes(b) ||
+      r.nome.toLowerCase().includes(b) ||
+      r.ramal.includes(b));
+
+  if(t) lista = lista.filter(r => r.tipo === t);
+
+  if(o) lista.sort((a,b)=>a[o].localeCompare(b[o]));
+
+  return lista;
+}
+
+function render(){
+  const lista = getFiltrados();
+  const ini = (pagina-1)*PAGE_SIZE;
+  const pag = lista.slice(ini, ini+PAGE_SIZE);
+
+  tabela.innerHTML = pag.map(r=>`
+    <tr>
+      <td>${r.setor}</td>
+      <td>${r.nome}</td>
+      <td>${r.ramal}</td>
+      <td>${r.tipo}</td>
+      <td class="actions">
+        <button onclick="excluir('${r.id}')">🗑</button>
+      </td>
+    </tr>
+  `).join("");
+
+  pageInfo.textContent = `Página ${pagina} / ${Math.ceil(lista.length/PAGE_SIZE)}`;
+}
+
+function excluir(id){
+  if(confirm("Excluir ramal?")){
+    ramais = ramais.filter(r=>r.id!==id);
+    salvar();
+  }
+}
+
+function salvar(){
+  localStorage.setItem("ramais", JSON.stringify(ramais));
+  render();
+}
+
+function exportarExcel(){
+  const ws = XLSX.utils.json_to_sheet(ramais);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Ramais");
+  XLSX.writeFile(wb, "ramais.xlsx");
+}
+
+function exportarPDF(){
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF();
+  ramais.forEach((r,i)=>{
+    pdf.text(`${r.setor} - ${r.nome} - ${r.ramal} - ${r.tipo}`,10,10+i*8);
+  });
+  pdf.save("ramais.pdf");
+}
+
+function importarExcel(e){
+  const reader = new FileReader();
+  reader.onload = evt=>{
+    const wb = XLSX.read(evt.target.result,{type:'binary'});
+    const dados = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+    dados.forEach(d=>ramais.push({...d,id:uuid()}));
+    salvar();
+  };
+  reader.readAsBinaryString(e.target.files[0]);
+}
+
+render();
+</script>
+</body>
+</html>
