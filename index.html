@@ -3,254 +3,288 @@
 <head>
 <meta charset="UTF-8">
 <title>Sistema de Ramais</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<!-- Libs -->
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
 <style>
-:root {
-  --bg:#000;
-  --card:rgba(255,255,255,.08);
-  --border:#333;
-  --accent:#FF851B;
-}
-
-* { box-sizing:border-box; }
+* { box-sizing: border-box; }
 
 body {
-  margin:0;
-  padding:20px;
-  font-family:system-ui,-apple-system,BlinkMacSystemFont;
-  background:var(--bg);
-  color:#eaeaea;
+  margin: 0;
+  padding: 40px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+               Roboto, Helvetica, Arial, sans-serif;
+  background: #000;
+  color: #eaeaea;
 }
 
-h1 { margin-bottom:20px; }
-
-.container {
-  max-width:1200px;
-  margin:auto;
+h1 {
+  font-size: 32px;
+  font-weight: 600;
+  margin-bottom: 30px;
 }
 
-.card {
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:20px;
-  padding:20px;
-  margin-bottom:20px;
+.menu, .section {
+  background: rgba(255,255,255,.08);
+  backdrop-filter: blur(20px);
+  border-radius: 22px;
+  padding: 25px;
+  border: 1px solid #333333;
+  box-shadow: 0 10px 40px rgba(0,0,0,.7);
+  margin-bottom: 25px;
 }
 
 button {
-  background:var(--accent);
-  border:none;
-  border-radius:14px;
-  padding:10px 16px;
-  font-weight:600;
-  cursor:pointer;
+  background: #FF851B;
+  color: #000;
+  border: none;
+  border-radius: 14px;
+  padding: 10px 20px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 button.secondary {
-  background:transparent;
-  color:var(--accent);
-  border:1px solid var(--border);
+  background: transparent;
+  color: #FF851B;
+  border: 1px solid #333333;
 }
 
 input, select {
-  width:100%;
-  padding:12px;
-  border-radius:14px;
-  border:1px solid var(--border);
-  background:rgba(255,255,255,.1);
-  color:#fff;
-}
-
-.controls {
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-  gap:10px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid #333333;
+  background: rgba(255,255,255,.1);
+  color: #eaeaea;
+  margin-bottom: 14px;
 }
 
 table {
-  width:100%;
-  border-collapse:separate;
-  border-spacing:0 10px;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 10px;
 }
 
-td, th {
-  padding:12px;
+th {
+  color: #999;
+  font-size: 13px;
+  text-align: left;
 }
 
 td {
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:12px;
+  background: rgba(255,255,255,.08);
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid #333333;
 }
 
 .actions button {
-  background:none;
-  color:var(--accent);
-}
-
-.pagination {
-  display:flex;
-  justify-content:center;
-  gap:10px;
-  margin-top:15px;
-}
-
-@media(max-width:700px){
-  table, thead { display:none; }
-  tr {
-    display:block;
-    background:var(--card);
-    border-radius:14px;
-    padding:12px;
-    margin-bottom:10px;
-  }
-  td {
-    display:block;
-    border:none;
-    padding:6px 0;
-  }
+  background: transparent;
+  color: #FF851B;
 }
 </style>
 </head>
 
 <body>
-<div class="container">
+
 <h1>📞 Sistema de Ramais</h1>
 
-<div class="card controls">
-  <input id="busca" placeholder="Buscar..." oninput="aplicarFiltros()">
-  <select id="tipoFiltro" onchange="aplicarFiltros()">
-    <option value="">Todos</option>
-    <option>IP</option>
-    <option>3CX</option>
-  </select>
-  <select id="ordenar" onchange="aplicarFiltros()">
-    <option value="">Ordenar</option>
-    <option value="setor">Setor</option>
-    <option value="nome">Nome</option>
-    <option value="ramal">Ramal</option>
-  </select>
-  <button onclick="exportarExcel()">Excel</button>
-  <button onclick="exportarPDF()">PDF</button>
-  <input type="file" accept=".xlsx" onchange="importarExcel(event)">
+<div class="menu">
+  <button onclick="mostrarSecao('cadastro')">Cadastrar Ramal</button>
+  <button class="secondary" onclick="mostrarSecao('pesquisa')">Pesquisar</button>
 </div>
 
-<div class="card">
-<table>
-<thead>
-<tr>
-<th>Setor</th><th>Nome</th><th>Ramal</th><th>Tipo</th><th></th>
-</tr>
-</thead>
-<tbody id="tabela"></tbody>
-</table>
+<div id="secaoCadastro" class="section" style="display:none;">
+  <h3>Cadastrar / Editar Ramal</h3>
+  <input type="hidden" id="editId">
 
-<div class="pagination">
-  <button onclick="pagina-- && render()">◀</button>
-  <span id="pageInfo"></span>
-  <button onclick="pagina++ && render()">▶</button>
+  <label>Setor</label>
+  <input id="setor">
+
+  <label>Nome</label>
+  <input id="nome">
+
+  <label>Ramal</label>
+  <input id="ramal">
+
+  <label>Tipo</label>
+  <select id="tipo">
+    <option value="">Selecione</option>
+    <option value="IP">IP</option>
+    <option value="3CX">3CX</option>
+  </select>
+
+  <button onclick="salvarRamal()">Salvar</button>
+  <button class="secondary" onclick="cancelar()">Cancelar</button>
 </div>
-</div>
+
+<div id="secaoPesquisa" class="section">
+  <h3>Pesquisar Ramal</h3>
+  <input id="busca" placeholder="Buscar por setor, nome ou ramal" onkeyup="buscarRamal()">
+
+  <table>
+    <thead>
+      <tr>
+        <th>Setor</th>
+        <th>Nome</th>
+        <th>Ramal</th>
+        <th>Tipo</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody id="tabelaRamais"></tbody>
+  </table>
 </div>
 
 <script>
-const PAGE_SIZE = 10;
-let pagina = 1;
+const dadosIniciais = [
+  ["DTI","GABRIEL","9093","3CX"],
+  ["DTI","HENRIQUE","1602","3CX"],
+  ["DTI","RONI","9095","3CX"],
+  ["DTI","ENTONY","9092","3CX"],
+  ["DTI","VIVIAN","9102","3CX"],
+  ["DTI","YASMIM","1972","3CX"],
+  ["DTI","DEBORA","1949","3CX"],
+  ["DTI","NEGOCIOS","1767","3CX"],
+  ["DTI","SUPORTE TEC","1775","3CX"],
 
-const uuid = () =>
-  crypto.randomUUID?.() || Math.random().toString(36).slice(2);
+  ["PROVIMENTO TERREO","ALICY, WALESKA E JOSUE","2701","IP"],
+  ["PROVIMENTO TERREO","SIMONE, EDUARDA, LETICIA, LEA","1636","IP"],
+  ["PROVIMENTO TERREO","Billy","1977","3CX"],
+  ["PROVIMENTO TERREO","André","1757","3CX"],
+  ["PROVIMENTO TERREO","CAMILA","1907","3CX"],
+  ["PROVIMENTO TERREO","DANIELA","1906","3CX"],
+  ["PROVIMENTO TERREO","KARLA","1903","3CX"],
 
-let ramais = JSON.parse(localStorage.getItem("ramais")) || [];
+  ["ASCOOP","DAVID E ANDRESSA","1610","IP"],
+  ["ASCOOP","ROBERTO","1771","IP"],
+  ["ASCOOP","INGRID","1772","IP"],
+  ["ASCOOP","VITOR SAMUEL","1723","IP"],
+  ["ASCOOP","REBECA","1774","IP"],
+  ["ASCOOP","MARIA LUIZA","1929","3CX"],
 
-function aplicarFiltros(){
-  pagina = 1;
-  render();
+  ["PROVIMENTO 2° ANDAR","ANA CAROLINE","1736","IP"],
+  ["PROVIMENTO 2° ANDAR","JONATHAN","1676","3CX"],
+  ["PROVIMENTO 2° ANDAR","GLEICE","1673","3CX"],
+  ["PROVIMENTO 2° ANDAR","PATRICIA","2749","3CX"],
+  ["PROVIMENTO 2° ANDAR","CAMILA RUFINO","1930","3CX"],
+  ["PROVIMENTO 2° ANDAR","LUCIAN","1905","3CX"],
+  ["PROVIMENTO 2° ANDAR","WESCKLEY","1902","3CX"],
+
+  ["OUVIDORIA","SETORIAL","1680","IP"],
+  ["OUVIDORIA","SETORIAL","1780","IP"],
+
+  ["AVALIAÇÃO CLINICA","KIMBERLY","1742","IP"],
+  ["AVALIAÇÃO CLINICA","MICHELE","1764","IP"],
+
+  ["FINANCEIRO","JESSICA","1660","IP"],
+  ["FINANCEIRO","RENATO","1716","IP"],
+  ["FINANCEIRO","KAROL","1676","IP"],
+  ["FINANCEIRO","HELIO","1639","IP"],
+  ["FINANCEIRO","GLECIA","1662","IP"],
+  ["FINANCEIRO","NICACIO","1708","IP"],
+  ["FINANCEIRO","ERALDO","1756","3CX"],
+
+  ["SEPES","EVELUCIA","3129","IP"],
+  ["SEPES","ALICE","1752","IP"],
+  ["SEPES","ADRIELE","1721","IP"],
+  ["SEPES","MARTHA","1719","IP"],
+  ["SEPES","ROSNA E ELIDIA","1726","IP"],
+  ["SEPES","KARINE E FABIELE","1682","IP"],
+  ["SEPES","JULIA","1669","IP"]
+].map(r => ({
+  id: crypto.randomUUID(),
+  setor: r[0],
+  nome: r[1],
+  ramal: r[2],
+  tipo: r[3]
+}));
+
+let ramais = JSON.parse(localStorage.getItem("ramais"));
+if (!ramais) {
+  ramais = dadosIniciais;
+  localStorage.setItem("ramais", JSON.stringify(ramais));
 }
 
-function getFiltrados(){
-  let lista = [...ramais];
-  const b = busca.value.toLowerCase();
-  const t = tipoFiltro.value;
-  const o = ordenar.value;
+mostrarSecao("pesquisa");
 
-  if(b)
-    lista = lista.filter(r =>
-      r.setor.toLowerCase().includes(b) ||
-      r.nome.toLowerCase().includes(b) ||
-      r.ramal.includes(b));
-
-  if(t) lista = lista.filter(r => r.tipo === t);
-
-  if(o) lista.sort((a,b)=>a[o].localeCompare(b[o]));
-
-  return lista;
+function mostrarSecao(s) {
+  secaoCadastro.style.display = s === "cadastro" ? "block" : "none";
+  secaoPesquisa.style.display = s === "pesquisa" ? "block" : "none";
+  listarRamais(ramais);
 }
 
-function render(){
-  const lista = getFiltrados();
-  const ini = (pagina-1)*PAGE_SIZE;
-  const pag = lista.slice(ini, ini+PAGE_SIZE);
-
-  tabela.innerHTML = pag.map(r=>`
-    <tr>
-      <td>${r.setor}</td>
-      <td>${r.nome}</td>
-      <td>${r.ramal}</td>
-      <td>${r.tipo}</td>
-      <td class="actions">
-        <button onclick="excluir('${r.id}')">🗑</button>
-      </td>
-    </tr>
-  `).join("");
-
-  pageInfo.textContent = `Página ${pagina} / ${Math.ceil(lista.length/PAGE_SIZE)}`;
+function listarRamais(lista) {
+  tabelaRamais.innerHTML = "";
+  lista.forEach(r => {
+    tabelaRamais.innerHTML += `
+      <tr>
+        <td>${r.setor}</td>
+        <td>${r.nome}</td>
+        <td>${r.ramal}</td>
+        <td>${r.tipo}</td>
+        <td class="actions">
+          <button onclick="editar('${r.id}')">Editar</button>
+          <button onclick="excluir('${r.id}')">Excluir</button>
+        </td>
+      </tr>`;
+  });
 }
 
-function excluir(id){
-  if(confirm("Excluir ramal?")){
-    ramais = ramais.filter(r=>r.id!==id);
+function salvarRamal() {
+  if (!setor.value || !nome.value || !ramal.value || !tipo.value)
+    return alert("Preencha todos os campos");
+
+  if (editId.value) {
+    const r = ramais.find(x => x.id === editId.value);
+    Object.assign(r, { setor:setor.value, nome:nome.value, ramal:ramal.value, tipo:tipo.value });
+  } else {
+    ramais.push({
+      id: crypto.randomUUID(),
+      setor:setor.value,
+      nome:nome.value,
+      ramal:ramal.value,
+      tipo:tipo.value
+    });
+  }
+  salvar();
+}
+
+function editar(id) {
+  const r = ramais.find(x => x.id === id);
+  setor.value = r.setor;
+  nome.value = r.nome;
+  ramal.value = r.ramal;
+  tipo.value = r.tipo;
+  editId.value = r.id;
+  mostrarSecao("cadastro");
+}
+
+function excluir(id) {
+  if (confirm("Deseja excluir este ramal?")) {
+    ramais = ramais.filter(r => r.id !== id);
     salvar();
   }
 }
 
-function salvar(){
+function buscarRamal() {
+  const t = busca.value.toLowerCase();
+  listarRamais(ramais.filter(r =>
+    r.setor.toLowerCase().includes(t) ||
+    r.nome.toLowerCase().includes(t) ||
+    r.ramal.includes(t)
+  ));
+}
+
+function salvar() {
   localStorage.setItem("ramais", JSON.stringify(ramais));
-  render();
+  cancelar();
 }
 
-function exportarExcel(){
-  const ws = XLSX.utils.json_to_sheet(ramais);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Ramais");
-  XLSX.writeFile(wb, "ramais.xlsx");
+function cancelar() {
+  setor.value = nome.value = ramal.value = tipo.value = editId.value = "";
+  mostrarSecao("pesquisa");
 }
-
-function exportarPDF(){
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF();
-  ramais.forEach((r,i)=>{
-    pdf.text(`${r.setor} - ${r.nome} - ${r.ramal} - ${r.tipo}`,10,10+i*8);
-  });
-  pdf.save("ramais.pdf");
-}
-
-function importarExcel(e){
-  const reader = new FileReader();
-  reader.onload = evt=>{
-    const wb = XLSX.read(evt.target.result,{type:'binary'});
-    const dados = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-    dados.forEach(d=>ramais.push({...d,id:uuid()}));
-    salvar();
-  };
-  reader.readAsBinaryString(e.target.files[0]);
-}
-
-render();
 </script>
+
 </body>
 </html>
