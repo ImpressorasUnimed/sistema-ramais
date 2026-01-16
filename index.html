@@ -14,6 +14,63 @@ body {
                Roboto, Helvetica, Arial, sans-serif;
   background: #000;
   color: #eaeaea;
+  display: flex;
+}
+
+/* ===== SIDEBAR ===== */
+#sidebar {
+  width: 220px;
+  margin-right: 30px;
+  display: none;
+  transition: transform .3s ease;
+}
+
+#sidebar .menu {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ===== MOBILE ===== */
+#mobileToggle {
+  display: none;
+  font-size: 22px;
+  background: transparent;
+  color: #FF851B;
+  border: none;
+  cursor: pointer;
+  margin-bottom: 15px;
+}
+
+@media (max-width: 900px) {
+  body {
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  #sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: #000;
+    padding: 30px 20px;
+    transform: translateX(-100%);
+    z-index: 1000;
+  }
+
+  #sidebar.ativo {
+    transform: translateX(0);
+  }
+
+  #mobileToggle {
+    display: inline-block;
+  }
+}
+
+/* ===== CONTEÚDO ===== */
+#main {
+  flex: 1;
 }
 
 h1 {
@@ -86,11 +143,25 @@ td {
 
 <body>
 
-<h1>📞 Sistema de Ramais</h1>
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div class="menu">
+    <button onclick="mostrarSecao('cadastro'); fecharSidebar()">Adicionar</button>
+    <button onclick="alert('Use o botão Editar na tabela')">Editar</button>
+    <button onclick="alert('Use o botão Excluir na tabela')">Excluir</button>
+  </div>
+</div>
+
+<div id="main">
+
+<button id="mobileToggle" onclick="toggleSidebar()">☰ Menu</button>
+
+<h1>📞 Catalogo de Ramais</h1>
 
 <div class="menu">
-  <button onclick="mostrarSecao('cadastro')">Cadastrar Ramal</button>
+  <button id="btnCadastro" onclick="mostrarSecao('cadastro')">Cadastrar Ramal</button>
   <button class="secondary" onclick="mostrarSecao('pesquisa')">Pesquisar</button>
+  <button class="secondary" onclick="login()">🔐 Acesso Administrativo</button>
 </div>
 
 <div id="secaoCadastro" class="section" style="display:none;">
@@ -135,13 +206,62 @@ td {
   </table>
 </div>
 
+</div>
+
 <script>
 const API_URL = "https://sheetdb.io/api/v1/6uet0g8pur14t";
+const SENHA = "asd!@065";
+const TEMPO_SESSAO = 15 * 60 * 1000;
 let ramais = [];
+let autenticado = false;
 
+verificarSessao();
 mostrarSecao("pesquisa");
 carregarRamais();
+bloquearAdmin();
 
+/* ===== SESSÃO ===== */
+function login() {
+  const s = prompt("Digite a senha administrativa:");
+  if (s === SENHA) {
+    autenticado = true;
+    localStorage.setItem("sessaoAdmin", Date.now());
+    liberarAdmin();
+    alert("Acesso liberado por 15 minutos");
+  } else {
+    alert("Senha incorreta");
+  }
+}
+
+function verificarSessao() {
+  const inicio = localStorage.getItem("sessaoAdmin");
+  if (inicio && Date.now() - inicio < TEMPO_SESSAO) {
+    autenticado = true;
+    liberarAdmin();
+  } else {
+    localStorage.removeItem("sessaoAdmin");
+  }
+}
+
+function liberarAdmin() {
+  sidebar.style.display = "block";
+  btnCadastro.style.display = "inline-block";
+}
+
+function bloquearAdmin() {
+  btnCadastro.style.display = "none";
+}
+
+/* ===== SIDEBAR MOBILE ===== */
+function toggleSidebar() {
+  sidebar.classList.toggle("ativo");
+}
+
+function fecharSidebar() {
+  sidebar.classList.remove("ativo");
+}
+
+/* ===== FUNÇÕES EXISTENTES ===== */
 function mostrarSecao(s) {
   secaoCadastro.style.display = s === "cadastro" ? "block" : "none";
   secaoPesquisa.style.display = s === "pesquisa" ? "block" : "none";
@@ -163,14 +283,17 @@ function listarRamais(lista) {
         <td>${r.ramal}</td>
         <td>${r.tipo}</td>
         <td class="actions">
+          ${autenticado ? `
           <button onclick="editar('${r.id}')">Editar</button>
-          <button onclick="excluir('${r.id}')">Excluir</button>
+          <button onclick="excluir('${r.id}')">Excluir</button>` : ``}
         </td>
       </tr>`;
   });
 }
 
 async function salvarRamal() {
+  if (!autenticado) return alert("Sessão expirada");
+
   if (!setor.value || !nome.value || !ramal.value || !tipo.value)
     return alert("Preencha todos os campos");
 
@@ -201,6 +324,7 @@ async function salvarRamal() {
 }
 
 function editar(id) {
+  if (!autenticado) return;
   const r = ramais.find(x => x.id === id);
   setor.value = r.setor;
   nome.value = r.nome;
@@ -211,6 +335,7 @@ function editar(id) {
 }
 
 async function excluir(id) {
+  if (!autenticado) return;
   if (confirm("Deseja excluir este ramal?")) {
     await fetch(`${API_URL}/id/${id}`, { method: "DELETE" });
     carregarRamais();
