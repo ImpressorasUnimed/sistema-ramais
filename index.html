@@ -136,80 +136,20 @@ td {
 </div>
 
 <script>
-const dadosIniciais = [
-  ["DTI","GABRIEL","9093","3CX"],
-  ["DTI","HENRIQUE","1602","3CX"],
-  ["DTI","RONI","9095","3CX"],
-  ["DTI","ENTONY","9092","3CX"],
-  ["DTI","VIVIAN","9102","3CX"],
-  ["DTI","YASMIM","1972","3CX"],
-  ["DTI","DEBORA","1949","3CX"],
-  ["DTI","NEGOCIOS","1767","3CX"],
-  ["DTI","SUPORTE TEC","1775","3CX"],
-
-  ["PROVIMENTO TERREO","ALICY, WALESKA E JOSUE","2701","IP"],
-  ["PROVIMENTO TERREO","SIMONE, EDUARDA, LETICIA, LEA","1636","IP"],
-  ["PROVIMENTO TERREO","Billy","1977","3CX"],
-  ["PROVIMENTO TERREO","André","1757","3CX"],
-  ["PROVIMENTO TERREO","CAMILA","1907","3CX"],
-  ["PROVIMENTO TERREO","DANIELA","1906","3CX"],
-  ["PROVIMENTO TERREO","KARLA","1903","3CX"],
-
-  ["ASCOOP","DAVID E ANDRESSA","1610","IP"],
-  ["ASCOOP","ROBERTO","1771","IP"],
-  ["ASCOOP","INGRID","1772","IP"],
-  ["ASCOOP","VITOR SAMUEL","1723","IP"],
-  ["ASCOOP","REBECA","1774","IP"],
-  ["ASCOOP","MARIA LUIZA","1929","3CX"],
-
-  ["PROVIMENTO 2° ANDAR","ANA CAROLINE","1736","IP"],
-  ["PROVIMENTO 2° ANDAR","JONATHAN","1676","3CX"],
-  ["PROVIMENTO 2° ANDAR","GLEICE","1673","3CX"],
-  ["PROVIMENTO 2° ANDAR","PATRICIA","2749","3CX"],
-  ["PROVIMENTO 2° ANDAR","CAMILA RUFINO","1930","3CX"],
-  ["PROVIMENTO 2° ANDAR","LUCIAN","1905","3CX"],
-  ["PROVIMENTO 2° ANDAR","WESCKLEY","1902","3CX"],
-
-  ["OUVIDORIA","SETORIAL","1680","IP"],
-  ["OUVIDORIA","SETORIAL","1780","IP"],
-
-  ["AVALIAÇÃO CLINICA","KIMBERLY","1742","IP"],
-  ["AVALIAÇÃO CLINICA","MICHELE","1764","IP"],
-
-  ["FINANCEIRO","JESSICA","1660","IP"],
-  ["FINANCEIRO","RENATO","1716","IP"],
-  ["FINANCEIRO","KAROL","1676","IP"],
-  ["FINANCEIRO","HELIO","1639","IP"],
-  ["FINANCEIRO","GLECIA","1662","IP"],
-  ["FINANCEIRO","NICACIO","1708","IP"],
-  ["FINANCEIRO","ERALDO","1756","3CX"],
-
-  ["SEPES","EVELUCIA","3129","IP"],
-  ["SEPES","ALICE","1752","IP"],
-  ["SEPES","ADRIELE","1721","IP"],
-  ["SEPES","MARTHA","1719","IP"],
-  ["SEPES","ROSNA E ELIDIA","1726","IP"],
-  ["SEPES","KARINE E FABIELE","1682","IP"],
-  ["SEPES","JULIA","1669","IP"]
-].map(r => ({
-  id: crypto.randomUUID(),
-  setor: r[0],
-  nome: r[1],
-  ramal: r[2],
-  tipo: r[3]
-}));
-
-let ramais = JSON.parse(localStorage.getItem("ramais"));
-if (!ramais) {
-  ramais = dadosIniciais;
-  localStorage.setItem("ramais", JSON.stringify(ramais));
-}
+const API_URL = "https://sheetdb.io/api/v1/6uet0g8pur14t";
+let ramais = [];
 
 mostrarSecao("pesquisa");
+carregarRamais();
 
 function mostrarSecao(s) {
   secaoCadastro.style.display = s === "cadastro" ? "block" : "none";
   secaoPesquisa.style.display = s === "pesquisa" ? "block" : "none";
+}
+
+async function carregarRamais() {
+  const res = await fetch(API_URL);
+  ramais = await res.json();
   listarRamais(ramais);
 }
 
@@ -230,23 +170,34 @@ function listarRamais(lista) {
   });
 }
 
-function salvarRamal() {
+async function salvarRamal() {
   if (!setor.value || !nome.value || !ramal.value || !tipo.value)
     return alert("Preencha todos os campos");
 
+  const dados = {
+    id: editId.value || crypto.randomUUID(),
+    setor: setor.value,
+    nome: nome.value,
+    ramal: ramal.value,
+    tipo: tipo.value
+  };
+
   if (editId.value) {
-    const r = ramais.find(x => x.id === editId.value);
-    Object.assign(r, { setor:setor.value, nome:nome.value, ramal:ramal.value, tipo:tipo.value });
+    await fetch(`${API_URL}/id/${editId.value}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data: dados })
+    });
   } else {
-    ramais.push({
-      id: crypto.randomUUID(),
-      setor:setor.value,
-      nome:nome.value,
-      ramal:ramal.value,
-      tipo:tipo.value
+    await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data: [dados] })
     });
   }
-  salvar();
+
+  cancelar();
+  carregarRamais();
 }
 
 function editar(id) {
@@ -259,10 +210,10 @@ function editar(id) {
   mostrarSecao("cadastro");
 }
 
-function excluir(id) {
+async function excluir(id) {
   if (confirm("Deseja excluir este ramal?")) {
-    ramais = ramais.filter(r => r.id !== id);
-    salvar();
+    await fetch(`${API_URL}/id/${id}`, { method: "DELETE" });
+    carregarRamais();
   }
 }
 
@@ -273,11 +224,6 @@ function buscarRamal() {
     r.nome.toLowerCase().includes(t) ||
     r.ramal.includes(t)
   ));
-}
-
-function salvar() {
-  localStorage.setItem("ramais", JSON.stringify(ramais));
-  cancelar();
 }
 
 function cancelar() {
