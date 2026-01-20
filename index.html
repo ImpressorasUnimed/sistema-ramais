@@ -2,33 +2,58 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Sistema de Ramais</title>
+<title>Catálogo de Ramais</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+:root {
+  --bg: #000;
+  --card: rgba(255,255,255,.07);
+  --border: rgba(255,255,255,.15);
+  --accent: #FF851B;
+  --text: #eaeaea;
+  --muted: #9a9a9a;
+}
+
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
   padding: 40px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
                Roboto, Helvetica, Arial, sans-serif;
-  background: #000;
-  color: #eaeaea;
+  background: radial-gradient(circle at top, #111, #000);
+  color: var(--text);
   display: flex;
 }
 
 /* ===== SIDEBAR ===== */
 #sidebar {
-  width: 220px;
+  width: 240px;
   margin-right: 30px;
   display: none;
-  transition: transform .3s ease;
 }
 
 #sidebar .menu {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+}
+
+#sidebar button {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 14px 18px;
+  border-radius: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: all .25s ease;
+}
+
+#sidebar button:hover {
+  background: var(--accent);
+  color: #000;
 }
 
 /* ===== MOBILE ===== */
@@ -36,10 +61,10 @@ body {
   display: none;
   font-size: 22px;
   background: transparent;
-  color: #FF851B;
+  color: var(--accent);
   border: none;
   cursor: pointer;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 @media (max-width: 900px) {
@@ -50,94 +75,124 @@ body {
 
   #sidebar {
     position: fixed;
-    top: 0;
-    left: 0;
-    height: 100%;
-    background: #000;
+    inset: 0 auto 0 0;
+    background: linear-gradient(180deg,#000,#111);
     padding: 30px 20px;
     transform: translateX(-100%);
+    transition: transform .3s ease;
     z-index: 1000;
   }
 
-  #sidebar.ativo {
-    transform: translateX(0);
-  }
-
-  #mobileToggle {
-    display: inline-block;
-  }
+  #sidebar.ativo { transform: translateX(0); }
+  #mobileToggle { display: inline-block; }
 }
 
 /* ===== CONTEÚDO ===== */
-#main {
-  flex: 1;
-}
+#main { flex: 1; }
 
 h1 {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 600;
-  margin-bottom: 30px;
+  margin-bottom: 6px;
+}
+
+h1 span { color: var(--accent); }
+
+h3 {
+  font-size: 18px;
+  margin-bottom: 18px;
 }
 
 .menu, .section {
-  background: rgba(255,255,255,.08);
-  backdrop-filter: blur(20px);
-  border-radius: 22px;
-  padding: 25px;
-  border: 1px solid #333333;
-  box-shadow: 0 10px 40px rgba(0,0,0,.7);
+  background: var(--card);
+  border-radius: 20px;
+  padding: 28px;
+  border: 1px solid var(--border);
+  box-shadow: 0 12px 40px rgba(0,0,0,.6);
   margin-bottom: 25px;
 }
 
+/* ===== BOTÕES ===== */
 button {
-  background: #FF851B;
+  background: var(--accent);
   color: #000;
   border: none;
   border-radius: 14px;
-  padding: 10px 20px;
+  padding: 12px 22px;
   font-weight: 600;
   cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(255,133,27,.4);
 }
 
 button.secondary {
   background: transparent;
-  color: #FF851B;
-  border: 1px solid #333333;
+  color: var(--accent);
+  border: 1px solid var(--border);
 }
 
+button.secondary:hover {
+  background: rgba(255,133,27,.1);
+  box-shadow: none;
+}
+
+/* ===== INPUTS ===== */
 input, select {
   width: 100%;
-  padding: 12px 14px;
+  padding: 13px 16px;
   border-radius: 14px;
-  border: 1px solid #333333;
-  background: rgba(255,255,255,.1);
-  color: #eaeaea;
-  margin-bottom: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.05);
+  color: var(--text);
+  margin-bottom: 16px;
 }
 
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(255,133,27,.2);
+}
+
+/* ===== TABELA ===== */
 table {
   width: 100%;
   border-collapse: separate;
-  border-spacing: 0 10px;
+  border-spacing: 0 12px;
 }
 
 th {
-  color: #999;
-  font-size: 13px;
-  text-align: left;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
 }
 
+tbody tr {
+  transition: transform .15s ease;
+}
+
+tbody tr:hover { transform: scale(1.01); }
+
 td {
-  background: rgba(255,255,255,.08);
-  padding: 14px;
+  background: rgba(255,255,255,.06);
+  padding: 16px;
   border-radius: 14px;
-  border: 1px solid #333333;
+  border: 1px solid var(--border);
 }
 
 .actions button {
   background: transparent;
-  color: #FF851B;
+  color: var(--accent);
+  padding: 0;
+  margin-right: 10px;
+  font-weight: 600;
+  box-shadow: none;
 }
+
+.actions button:hover { text-decoration: underline; }
 </style>
 </head>
 
@@ -146,9 +201,9 @@ td {
 <!-- SIDEBAR -->
 <div id="sidebar">
   <div class="menu">
-    <button onclick="mostrarSecao('cadastro'); fecharSidebar()">Adicionar</button>
-    <button onclick="alert('Use o botão Editar na tabela')">Editar</button>
-    <button onclick="alert('Use o botão Excluir na tabela')">Excluir</button>
+    <button onclick="mostrarSecao('cadastro'); fecharSidebar()">➕ Adicionar</button>
+    <button onclick="alert('Use Editar na tabela')">✏️ Editar</button>
+    <button onclick="alert('Use Excluir na tabela')">🗑️ Excluir</button>
   </div>
 </div>
 
@@ -156,7 +211,7 @@ td {
 
 <button id="mobileToggle" onclick="toggleSidebar()">☰ Menu</button>
 
-<h1>📞 Catalogo de Ramais</h1>
+<h1>📞 <span>Catálogo</span> de Ramais</h1>
 
 <div class="menu">
   <button id="btnCadastro" onclick="mostrarSecao('cadastro')">Cadastrar Ramal</button>
@@ -165,33 +220,23 @@ td {
 </div>
 
 <div id="secaoCadastro" class="section" style="display:none;">
-  <h3>Cadastrar / Editar Ramal</h3>
+  <h3>Cadastrar / Editar</h3>
   <input type="hidden" id="editId">
-
-  <label>Setor</label>
-  <input id="setor">
-
-  <label>Nome</label>
-  <input id="nome">
-
-  <label>Ramal</label>
-  <input id="ramal">
-
-  <label>Tipo</label>
+  <input id="setor" placeholder="Setor">
+  <input id="nome" placeholder="Nome">
+  <input id="ramal" placeholder="Ramal">
   <select id="tipo">
-    <option value="">Selecione</option>
-    <option value="IP">IP</option>
-    <option value="3CX">3CX</option>
+    <option value="">Tipo</option>
+    <option>IP</option>
+    <option>3CX</option>
   </select>
-
   <button onclick="salvarRamal()">Salvar</button>
   <button class="secondary" onclick="cancelar()">Cancelar</button>
 </div>
 
 <div id="secaoPesquisa" class="section">
-  <h3>Pesquisar Ramal</h3>
+  <h3>Pesquisar</h3>
   <input id="busca" placeholder="Buscar por setor, nome ou ramal" onkeyup="buscarRamal()">
-
   <table>
     <thead>
       <tr>
@@ -212,35 +257,47 @@ td {
 const API_URL = "https://sheetdb.io/api/v1/6uet0g8pur14t";
 const SENHA = "asd!@065";
 const TEMPO_SESSAO = 15 * 60 * 1000;
+
 let ramais = [];
 let autenticado = false;
+let timerSessao;
 
 verificarSessao();
 mostrarSecao("pesquisa");
 carregarRamais();
 bloquearAdmin();
 
-/* ===== SESSÃO ===== */
 function login() {
-  const s = prompt("Digite a senha administrativa:");
+  const s = prompt("Senha administrativa:");
   if (s === SENHA) {
     autenticado = true;
     localStorage.setItem("sessaoAdmin", Date.now());
+    iniciarTimer();
     liberarAdmin();
     alert("Acesso liberado por 15 minutos");
-  } else {
-    alert("Senha incorreta");
-  }
+  } else alert("Senha incorreta");
 }
 
 function verificarSessao() {
-  const inicio = localStorage.getItem("sessaoAdmin");
-  if (inicio && Date.now() - inicio < TEMPO_SESSAO) {
+  const i = localStorage.getItem("sessaoAdmin");
+  if (i && Date.now() - i < TEMPO_SESSAO) {
     autenticado = true;
+    iniciarTimer();
     liberarAdmin();
-  } else {
-    localStorage.removeItem("sessaoAdmin");
-  }
+  } else encerrarSessao();
+}
+
+function iniciarTimer() {
+  clearTimeout(timerSessao);
+  timerSessao = setTimeout(encerrarSessao, TEMPO_SESSAO);
+}
+
+function encerrarSessao() {
+  autenticado = false;
+  localStorage.removeItem("sessaoAdmin");
+  bloquearAdmin();
+  fecharSidebar();
+  listarRamais(ramais);
 }
 
 function liberarAdmin() {
@@ -249,19 +306,13 @@ function liberarAdmin() {
 }
 
 function bloquearAdmin() {
+  sidebar.style.display = "none";
   btnCadastro.style.display = "none";
 }
 
-/* ===== SIDEBAR MOBILE ===== */
-function toggleSidebar() {
-  sidebar.classList.toggle("ativo");
-}
+function toggleSidebar() { sidebar.classList.toggle("ativo"); }
+function fecharSidebar() { sidebar.classList.remove("ativo"); }
 
-function fecharSidebar() {
-  sidebar.classList.remove("ativo");
-}
-
-/* ===== FUNÇÕES EXISTENTES ===== */
 function mostrarSecao(s) {
   secaoCadastro.style.display = s === "cadastro" ? "block" : "none";
   secaoPesquisa.style.display = s === "pesquisa" ? "block" : "none";
@@ -291,36 +342,13 @@ function listarRamais(lista) {
   });
 }
 
-async function salvarRamal() {
-  if (!autenticado) return alert("Sessão expirada");
-
-  if (!setor.value || !nome.value || !ramal.value || !tipo.value)
-    return alert("Preencha todos os campos");
-
-  const dados = {
-    id: editId.value || crypto.randomUUID(),
-    setor: setor.value,
-    nome: nome.value,
-    ramal: ramal.value,
-    tipo: tipo.value
-  };
-
-  if (editId.value) {
-    await fetch(`${API_URL}/id/${editId.value}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ data: dados })
-    });
-  } else {
-    await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ data: [dados] })
-    });
-  }
-
-  cancelar();
-  carregarRamais();
+function buscarRamal() {
+  const t = busca.value.toLowerCase();
+  listarRamais(ramais.filter(r =>
+    r.setor.toLowerCase().includes(t) ||
+    r.nome.toLowerCase().includes(t) ||
+    r.ramal.includes(t)
+  ));
 }
 
 function editar(id) {
@@ -334,21 +362,35 @@ function editar(id) {
   mostrarSecao("cadastro");
 }
 
+async function salvarRamal() {
+  if (!autenticado) return alert("Sessão expirada");
+  if (!setor.value || !nome.value || !ramal.value || !tipo.value)
+    return alert("Preencha todos os campos");
+
+  const dados = {
+    id: editId.value || crypto.randomUUID(),
+    setor: setor.value,
+    nome: nome.value,
+    ramal: ramal.value,
+    tipo: tipo.value
+  };
+
+  await fetch(editId.value ? `${API_URL}/id/${editId.value}` : API_URL, {
+    method: editId.value ? "PUT" : "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ data: editId.value ? dados : [dados] })
+  });
+
+  cancelar();
+  carregarRamais();
+}
+
 async function excluir(id) {
   if (!autenticado) return;
   if (confirm("Deseja excluir este ramal?")) {
     await fetch(`${API_URL}/id/${id}`, { method: "DELETE" });
     carregarRamais();
   }
-}
-
-function buscarRamal() {
-  const t = busca.value.toLowerCase();
-  listarRamais(ramais.filter(r =>
-    r.setor.toLowerCase().includes(t) ||
-    r.nome.toLowerCase().includes(t) ||
-    r.ramal.includes(t)
-  ));
 }
 
 function cancelar() {
