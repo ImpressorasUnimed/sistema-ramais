@@ -346,7 +346,7 @@ async function salvarRamal() {
     tipo: tipo.value
   };
 
-  await fetch(editId.value ? ${API_URL}/id/${editId.value} : API_URL, {
+  await fetch(editId.value ? `${API_URL}/id/${editId.value}` : API_URL, {
     method: editId.value ? "PUT" : "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ data: editId.value ? dados : [dados] })
@@ -359,7 +359,7 @@ async function salvarRamal() {
 async function excluir(id) {
   if (!autenticado) return;
   if (confirm("Deseja excluir este ramal?")) {
-    await fetch(${API_URL}/id/${id}, { method: "DELETE" });
+    await fetch(`${API_URL}/id/${id}`, { method: "DELETE" });
     carregarRamais();
   }
 }
